@@ -17,17 +17,16 @@ import {
 
 import styles from './ArticleParamsForm.module.scss';
 import clsx from 'clsx';
-import { useOutsideClickClose } from 'src/ui/select/hooks/useOutsideClickClose';
+import { useClose } from 'src/ui/select/hooks/useClose';
 
 export const ArticleParamsForm = (props: {
 	setArticle: (arg: ArticleStateType) => void;
 	currentState: ArticleStateType;
-	onClose?: () => void;
 }) => {
-	const { setArticle, currentState, onClose } = props;
+	const { setArticle, currentState } = props;
 	const rootRef = useRef<HTMLDivElement>(null);
 
-	const [isOpen, setIsOpen] = useState<boolean>(false);
+	const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
 	const [font, setFont] = useState<OptionType>(currentState.fontFamilyOption);
 	const [fontSize, setFontSize] = useState<OptionType>(
 		currentState.fontSizeOption
@@ -40,25 +39,35 @@ export const ArticleParamsForm = (props: {
 		currentState.contentWidth
 	);
 
-	useOutsideClickClose({
-		isOpen,
+	useClose({
+		isOpen: isMenuOpen,
+		onClose: () => setIsMenuOpen(false),
 		rootRef,
-		onClose,
-		onChange: setIsOpen,
 	});
+
+	const handleSubmit = () => {
+		setArticle({
+			fontFamilyOption: font,
+			fontSizeOption: fontSize,
+			fontColor: color,
+			backgroundColor: bgColor,
+			contentWidth: contentWidth,
+		});
+	};
 
 	return (
 		<>
 			<ArrowButton
-				isOpen={isOpen}
+				isOpen={isMenuOpen}
 				onClick={() => {
-					setIsOpen(!isOpen);
+					setIsMenuOpen(!isMenuOpen);
 				}}
 			/>
 			<aside
-				className={clsx(styles.container, { [styles.container_open]: isOpen })}
+				className={clsx(styles.container, { [styles.container_open]: isMenuOpen })}
 				ref={rootRef}>
-				<form className={styles.form}>
+				<form className={styles.form} onSubmit={handleSubmit}>
+					<p className={styles.form_header}>Задайте параметры</p>
 					<Select
 						options={fontFamilyOptions}
 						selected={font}
@@ -105,20 +114,7 @@ export const ArticleParamsForm = (props: {
 								setContentWidth(defaultArticleState.contentWidth);
 							}}
 						/>
-						<Button
-							title='Применить'
-							htmlType='submit'
-							type='apply'
-							onClick={() => {
-								setArticle({
-									fontFamilyOption: font,
-									fontSizeOption: fontSize,
-									fontColor: color,
-									backgroundColor: bgColor,
-									contentWidth: contentWidth,
-								});
-							}}
-						/>
+						<Button title='Применить' htmlType='submit' type='apply' />
 					</div>
 				</form>
 			</aside>
